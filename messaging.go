@@ -104,22 +104,32 @@ func (p *boundJsonCallbackPipeline) replyWithError(toMsgId uuid.UUID) {
 	p.reply(toMsgId, "Error handling request.")
 }
 
-func (p *boundJsonCallbackPipeline) reply(toMsgId uuid.UUID, message interface{}) {
-	msg := stubReply(toMsgId, message)
-
+func (p *boundJsonCallbackPipeline) sendMessage(msg SockMessage) error {
 	msgBytes, err := json.Marshal(msg)
 
 	if err != nil {
 		p.Log.WithFields(logrus.Fields{
-			"replyTo":   toMsgId,
-			"replyBody": message,
+			"replyTo":   msg.ReplyTo,
+			"replyBody": msg.Body,
 		}).Error("Couldn't marshal reply.")
-		return
+		return err
 	}
 
 	p.outbound <- msgBytes
+
+	return nil
+}
+
+func (p *boundJsonCallbackPipeline) reply(toMsgId uuid.UUID, message interface{}) {
+	msg := stubReply(toMsgId, message)
+
+	p.sendMessage(msg)
 }
 
 func (p *boundJsonCallbackPipeline) replyWithCallback(toMsgId uuid.UUID, message interface{}, callback MessageHandlingFunc) {
+	msg := stubReply(toMsgId, message)
 
+	p.sendMessage(msg)
+
+	p.callbacks[msg.Id.String()] = callback
 }
