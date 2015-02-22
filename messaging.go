@@ -20,8 +20,8 @@ type MessagePipeline interface {
 }
 
 type JsonCallbackPipeline struct {
-	log    *logrus.Logger
-	router Router
+	Log    *logrus.Logger
+	Router Router
 }
 
 type boundJsonCallbackPipeline struct {
@@ -47,7 +47,7 @@ func (p *boundJsonCallbackPipeline) inboundLoop() {
 		err := json.Unmarshal(msgBytes, msg)
 
 		if err != nil {
-			p.log.WithField("Error", err).Error("Error destructuring inbound message")
+			p.Log.WithField("Error", err).Error("Error destructuring inbound message")
 		}
 
 		if msg.ReplyTo != nil {
@@ -58,10 +58,10 @@ func (p *boundJsonCallbackPipeline) inboundLoop() {
 			continue
 		}
 
-		response, err := p.router.Route(msg.Path, msg.Body)
+		response, err := p.Router.Route(msg.Path, msg.Body)
 
 		if err != nil {
-			p.log.WithFields(logrus.Fields{
+			p.Log.WithFields(logrus.Fields{
 				"MsgId":       msg.Id,
 				"Error":       err,
 				"Path":        msg.Path,
@@ -72,9 +72,9 @@ func (p *boundJsonCallbackPipeline) inboundLoop() {
 		}
 
 		if response != nil {
-			fn, err := p.router.CallbackForRoute(msg.Path)
+			fn, err := p.Router.CallbackForRoute(msg.Path)
 			if err != nil {
-				p.log.WithFields(logrus.Fields{
+				p.Log.WithFields(logrus.Fields{
 					"MsgId":       msg.Id,
 					"Error":       err,
 					"Path":        msg.Path,
@@ -110,7 +110,7 @@ func (p *boundJsonCallbackPipeline) reply(toMsgId uuid.UUID, message interface{}
 	msgBytes, err := json.Marshal(msg)
 
 	if err != nil {
-		p.log.WithFields(logrus.Fields{
+		p.Log.WithFields(logrus.Fields{
 			"replyTo":   toMsgId,
 			"replyBody": message,
 		}).Error("Couldn't marshal reply.")
