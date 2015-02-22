@@ -10,7 +10,7 @@ func TestStaticRoute(t *testing.T) {
 	timesCalled := 0
 
 	method := func(_ interface{}) (interface{}, error) {
-		timesCalled = timesCalled + 1
+		timesCalled++
 
 		return testPath, nil
 	}
