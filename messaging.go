@@ -72,23 +72,22 @@ func (p *boundJsonCallbackPipeline) inboundLoop() {
 		}
 
 		if response != nil {
-			if callbackRouter, ok := p.router.(CallbackRouter); ok {
-				fn, err := callbackRouter.CallbackForPath(msg.Path)
-				if err != nil {
-					p.log.WithFields(logrus.Fields{
-						"MsgId":       msg.Id,
-						"Error":       err,
-						"Path":        msg.Path,
-						"MessageBody": msg.Body,
-					}).Error("Router returned error.")
+			fn, err := p.router.CallbackForRoute(msg.Path)
+			if err != nil {
+				p.log.WithFields(logrus.Fields{
+					"MsgId":       msg.Id,
+					"Error":       err,
+					"Path":        msg.Path,
+					"MessageBody": msg.Body,
+				}).Error("Router returned error.")
 
-					p.replyWithError(msg.Id)
-				}
-
-				p.replyWithCallback(msg.Id, response, fn)
-			} else {
-				p.reply(msg.Id, response)
+				p.replyWithError(msg.Id)
 			}
+
+			p.replyWithCallback(msg.Id, response, fn)
+
+		} else {
+			p.reply(msg.Id, response)
 		}
 	}
 }
