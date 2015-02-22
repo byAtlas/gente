@@ -35,12 +35,12 @@ type Connection struct {
 	outbound chan []byte
 }
 
-//Connection won't actually start listening until serveWs is called
+//Connection won't actually start listening until ServeHTTP is called
 func NewConnection(p MessagePipeline, log logrus.Logger) *Connection {
 	return &Connection{id: uuid.NewUUID(), msgPipe: p, log: log}
 }
 
-func (c *Connection) ServeWs(w http.ResponseWriter, r *http.Request) {
+func (c *Connection) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
 		return
