@@ -10,24 +10,28 @@ Dependent upon [logrus](https://github.com/Sirupsen/logrus) and [gorilla/websock
 Totally not anywhere near ready, I'm still building out the actual functionality. 
 If you're as crazy as I am, use something like:
   
+    package main
+    
+    import (
+    	"github.com/Sirupsen/logrus"
+    	"github.com/byatlas/gente"
+    	"net/http"
+    )
+    
+    var log *logrus.Logger
+    
     func main() {
     	log := logrus.StandardLogger()
     	routerBuilder := gente.RouterBuilder{}
     
     	msgPipe := gente.JsonCallbackPipeline{
-    		log:    log,
-    		router: routerBuilder,
+    		Log:    log,
+    		Router: routerBuilder.Finalize(),
     	}
     
-    	srv := websocket.Server{
-    		Config:    websocket.Config{},
-    		Handler:   wsHandler,
-    		Handshake: wsHandshake,
-    	}
+    	http.Handle("/ws", gente.NewConnection(&msgPipe, *log))
     
-    	http.Handle("/ws", gente.NewConnection(jsonCallbackPipeline{}, log).serveWs)
-    
-    	log.Fatal(http.ListenAndServe(":8080", handler))
+    	log.Fatal(http.ListenAndServe(":8080", nil))
     }
 
 No javascript lib as of yet, but it'll hopefully involve some code generation.
